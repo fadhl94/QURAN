@@ -256,7 +256,7 @@
             padding: 20px 0;
         }
 
-        /* الزر العائم (يظهر تلقائياً عندما يصبح الموقع جاهزاً للتثبيت عبر HTTPS) */
+        /* زر تثبيت التطبيق (أسفل اليسار) */
         .install-fab {
             position: fixed;
             bottom: 24px;
@@ -266,12 +266,12 @@
             border: none;
             border-radius: 50px;
             padding: 12px 20px;
-            font-size: 1rem;حدث
+            font-size: 1rem;
             font-weight: bold;
             box-shadow: 0 4px 14px rgba(0,0,0,0.3);
             cursor: pointer;
             z-index: 2000;
-            display: none; /* مخفي افتراضياً لحين جاهزية المتصفح */
+            display: none;
             align-items: center;
             gap: 8px;
             transition: background-color 0.2s, transform 0.2s;
@@ -281,9 +281,38 @@
             background-color: var(--primary);
             transform: scale(1.05);
         }
+
+        /* زر عائم علوي منتصف الشاشة لعدد السور المحفوظة عند التمرير */
+        .top-floating-badge {
+            position: fixed;
+            top: 16px;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: var(--primary);
+            color: white;
+            padding: 8px 18px;
+            border-radius: 30px;
+            font-size: 0.95rem;
+            font-weight: bold;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.25);
+            z-index: 3000;
+            display: none;
+            cursor: pointer;
+            border: 2px solid #d8f3dc;
+            transition: opacity 0.3s ease;
+        }
+
+        .top-floating-badge:hover {
+            background-color: var(--accent);
+        }
     </style>
 </head>
 <body>
+
+    <!-- الزر العائم العلوي لعدد المحفوظات (يظهر عند التمرير) -->
+    <button id="topFloatingBadge" class="top-floating-badge" onclick="scrollToTop()">
+        📖 المحفوظة: <span id="floatingCount">0</span>
+    </button>
 
     <div class="container">
         <div id="mainView">
@@ -299,7 +328,7 @@
 
         <div id="readerView">
             <div class="reader-header">
-                <button class="back-btn" onclick="backToMain()">← رجوع</button>
+                <button class="back-btn" onclick="goBack()">← رجوع</button>
                 <h2 id="readerTitle">سورة ...</h2>
             </div>
             <div id="bismillahContainer"></div>
@@ -309,7 +338,7 @@
         </div>
     </div>
 
-    <!-- الزر العائم للتثبيت -->
+    <!-- زر التثبيت -->
     <button id="installBtn" class="install-fab">
         📥 تثبيت التطبيق
     </button>
@@ -325,7 +354,6 @@
     </div>
 
     <script>
-        // إعداد ملف الـ Manifest برمجياً
         const manifestData = {
             name: "متابع حفظ القرآن الكريم",
             short_name: "حفظ القرآن",
@@ -348,20 +376,17 @@
         link.href = manifestURL;
         document.head.appendChild(link);
 
-        // التقاط حدث التثبيت الرسمي من المتصفح
         let deferredPrompt;
         const installBtn = document.getElementById('installBtn');
 
         window.addEventListener('beforeinstallprompt', (e) => {
             e.preventDefault();
             deferredPrompt = e;
-            // إظهار الزر بمجرد أن يؤكد المتصفح جاهزية التطبيق للتثبيت
             installBtn.style.display = 'flex';
         });
 
         installBtn.addEventListener('click', async () => {
             if (deferredPrompt) {
-                // إظهار نافذة التثبيت الرسمية للنظام
                 deferredPrompt.prompt();
                 const { outcome } = await deferredPrompt.userChoice;
                 if (outcome === 'accepted') {
@@ -403,7 +428,9 @@
         }
 
         function render() {
-            document.getElementById('counterText').innerText = `${memorizedSet.size} من ${surahNames.length}`;
+            const countText = `${memorizedSet.size} من ${surahNames.length}`;
+            document.getElementById('counterText').innerText = countText;
+            document.getElementById('floatingCount').innerText = `${memorizedSet.size} / 114`;
 
             const unmemorizedListEl = document.getElementById('unmemorizedList');
             unmemorizedListEl.innerHTML = '';
@@ -442,10 +469,17 @@
             }
         }
 
-        async function openSurah(id, name) {
+        // إدارة فتح السورة باستخدام History API لمنع الخروج عند الضغط على زر الرجوع
+        function openSurah(id, name) {
+            history.pushState({ view: 'reader', id: id, name: name }, '', `#surah-${id}`);
+            showReaderView(id, name);
+        }
+
+        async function showReaderView(id, name) {
             document.getElementById('mainView').style.display = 'none';
             document.getElementById('readerView').style.display = 'block';
             document.getElementById('readerTitle').innerText = `سورة ${name}`;
+            window.scrollTo(0, 0); // الانتقال لأعلى الصفحة عند الفتح
             
             const versesContainer = document.getElementById('versesContainer');
             const bismillahContainer = document.getElementById('bismillahContainer');
@@ -485,9 +519,38 @@
             }
         }
 
-        function backToMain() {
-            document.getElementById('readerView').style.display = 'none';
-            document.getElementById('mainView').style.display = 'block';
+        // زر الرجوع
+        function goBack() {
+            window.history.back();
+        }
+
+        // مراقبة أحداث المتصفح (زر الرجوع في الهاتف أو المتصفح)
+        window.addEventListener('popstate', (event) => {
+            const floatingBadge = document.getElementById('topFloatingBadge');
+            if (event.state && event.state.view === 'reader') {
+                showReaderView(event.state.id, event.state.name);
+            } else {
+                document.getElementById('readerView').style.display = 'none';
+                document.getElementById('mainView').style.display = 'block';
+                floatingBadge.style.display = 'none';
+            }
+        });
+
+        // مراقبة التمرير لإظهار أو إخفاء الزر العائم العلوي
+        window.addEventListener('scroll', () => {
+            const floatingBadge = document.getElementById('topFloatingBadge');
+            const readerView = document.getElementById('readerView');
+            
+            // يظهر الزر فقط داخل شاشة القراءة وعند التمرير للأسفل (أكثر من 150 بكسل)
+            if (readerView.style.display === 'block' && window.scrollY > 150) {
+                floatingBadge.style.display = 'block';
+            } else {
+                floatingBadge.style.display = 'none';
+            }
+        });
+
+        function scrollToTop() {
+            window.scrollTo({ top: 0, behavior: 'smooth' });
         }
 
         function openModal() {
