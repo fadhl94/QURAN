@@ -256,7 +256,6 @@
             padding: 20px 0;
         }
 
-        /* زر تثبيت التطبيق */
         .install-fab {
             position: fixed;
             bottom: 24px;
@@ -282,7 +281,6 @@
             transform: scale(1.05);
         }
 
-        /* الزر العائم العلوي المزدوج (يتغير حسب الواجهة) */
         .top-floating-badge {
             position: fixed;
             top: 16px;
@@ -310,13 +308,11 @@
 </head>
 <body>
 
-    <!-- الزر العائم العلوي التفاعلي -->
     <button id="topFloatingBadge" class="top-floating-badge" onclick="handleBadgeClick()">
         <span id="floatingBadgeContent">📖 المحفوظة: 0 / 114</span>
     </button>
 
     <div class="container">
-        <!-- الواجهة الرئيسية -->
         <div id="mainView">
             <div class="counter-card" onclick="openModal()">
                 <h2>السور المحفوظة</h2>
@@ -328,7 +324,6 @@
             <div class="surah-list" id="unmemorizedList"></div>
         </div>
 
-        <!-- شاشة قراءة السورة -->
         <div id="readerView">
             <div class="reader-header">
                 <button class="back-btn" onclick="goBack()">← رجوع</button>
@@ -341,12 +336,10 @@
         </div>
     </div>
 
-    <!-- زر التثبيت -->
     <button id="installBtn" class="install-fab">
         📥 تثبيت التطبيق
     </button>
 
-    <!-- النافذة المنبثقة للسور المحفوظة -->
     <div class="modal-overlay" id="modalOverlay">
         <div class="modal">
             <div class="modal-header">
@@ -416,7 +409,7 @@
         ];
 
         let memorizedSet = new Set(JSON.parse(localStorage.getItem('memorizedSurahs') || '[]'));
-        let currentSurahInfo = { name: '', versesCount: 0 }; // تخزين بيانات السورة المفتوحة حالياً
+        let currentSurahInfo = { name: '', versesCount: 0 };
 
         function saveState() {
             localStorage.setItem('memorizedSurahs', JSON.stringify(Array.from(memorizedSet)));
@@ -490,7 +483,8 @@
             versesContainer.innerHTML = '<div class="loading">جاري تحميل الآيات...</div>';
             bismillahContainer.innerHTML = '';
 
-            if (id !== 9 && id !== 1) {
+            // عرض البسملة لجميع السور عدا التوبة (رقم 9)
+            if (id !== 9) {
                 bismillahContainer.innerHTML = '<div class="bismillah">بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ</div>';
             }
 
@@ -502,7 +496,6 @@
                     let ayahs = data.data.ayahs;
                     let htmlContent = '';
                     
-                    // تحديث بيانات السورة الحالية
                     currentSurahInfo = {
                         name: name,
                         versesCount: ayahs.length
@@ -510,9 +503,11 @@
                     
                     ayahs.forEach((ayah, idx) => {
                         let text = ayah.text;
-                        if (id === 1 && idx === 0) {
-                            bismillahContainer.innerHTML = '<div class="bismillah">بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ</div>';
-                            text = text.replace(/بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ\s*/g, '');
+                        
+                        // تنظيف وحذف أي بسملة ملتصقة ببداية الآية الأولى لأي سورة عدا التوبة
+                        if (idx === 0 && id !== 9) {
+                            text = text.replace(/^بِسْمِ\s+اللَّهِ\s+الرَّحْمَٰنِ\s+الرَّحِيمِ\s*/g, '');
+                            text = text.replace(/^بِسْمِ\s+اللَّهِ\s+الرَّحْمَٰنِ\s+الرَّحِيمِ/g, '');
                         }
                         
                         let ayahNum = ` <span class="verse-number">﴿${ayah.numberInSurah}﴾</span> `;
@@ -520,7 +515,7 @@
                     });
                     
                     versesContainer.innerHTML = htmlContent;
-                    updateBadgeContent(); // تحديث محتوى الزر فور اكتمال القراءة
+                    updateBadgeContent();
                 } else {
                     versesContainer.innerHTML = '<div class="loading">حدث خطأ أثناء تحميل الآيات.</div>';
                 }
@@ -544,21 +539,17 @@
             }
         });
 
-        // تحديث محتوى الزر العائم حسب الصفحة المفتوحة حالياً
         function updateBadgeContent() {
             const readerView = document.getElementById('readerView');
             const badgeContent = document.getElementById('floatingBadgeContent');
 
             if (readerView.style.display === 'block') {
-                // نحن داخل صفحة قراءة السورة
                 badgeContent.innerText = `📖 سورة ${currentSurahInfo.name} - ${currentSurahInfo.versesCount} آية`;
             } else {
-                // نحن في الصفحة الرئيسية (قائمة السور)
                 badgeContent.innerText = `📖 المحفوظة: ${memorizedSet.size} / 114`;
             }
         }
 
-        // مراقبة التمرير للأسفل في كلا الواجهتين
         window.addEventListener('scroll', () => {
             const floatingBadge = document.getElementById('topFloatingBadge');
             
@@ -573,10 +564,8 @@
         function handleBadgeClick() {
             const readerView = document.getElementById('readerView');
             if (readerView.style.display === 'block') {
-                // العودة لأعلى السورة
                 window.scrollTo({ top: 0, behavior: 'smooth' });
             } else {
-                // فتح قائمة السور المحفوظة
                 openModal();
             }
         }
