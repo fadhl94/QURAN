@@ -256,7 +256,7 @@
             padding: 20px 0;
         }
 
-        /* زر تثبيت التطبيق (أسفل اليسار) */
+        /* زر تثبيت التطبيق */
         .install-fab {
             position: fixed;
             bottom: 24px;
@@ -282,7 +282,7 @@
             transform: scale(1.05);
         }
 
-        /* زر عائم علوي منتصف الشاشة لعدد السور المحفوظة عند التمرير */
+        /* الزر العائم العلوي المزدوج (يتغير حسب الواجهة) */
         .top-floating-badge {
             position: fixed;
             top: 16px;
@@ -300,6 +300,7 @@
             cursor: pointer;
             border: 2px solid #d8f3dc;
             transition: opacity 0.3s ease;
+            white-space: nowrap;
         }
 
         .top-floating-badge:hover {
@@ -309,12 +310,13 @@
 </head>
 <body>
 
-    <!-- الزر العائم العلوي لعدد المحفوظات (يظهر عند التمرير) -->
-    <button id="topFloatingBadge" class="top-floating-badge" onclick="scrollToTop()">
-        📖 المحفوظة: <span id="floatingCount">0</span>
+    <!-- الزر العائم العلوي التفاعلي -->
+    <button id="topFloatingBadge" class="top-floating-badge" onclick="handleBadgeClick()">
+        <span id="floatingBadgeContent">📖 المحفوظة: 0 / 114</span>
     </button>
 
     <div class="container">
+        <!-- الواجهة الرئيسية -->
         <div id="mainView">
             <div class="counter-card" onclick="openModal()">
                 <h2>السور المحفوظة</h2>
@@ -326,6 +328,7 @@
             <div class="surah-list" id="unmemorizedList"></div>
         </div>
 
+        <!-- شاشة قراءة السورة -->
         <div id="readerView">
             <div class="reader-header">
                 <button class="back-btn" onclick="goBack()">← رجوع</button>
@@ -343,6 +346,7 @@
         📥 تثبيت التطبيق
     </button>
 
+    <!-- النافذة المنبثقة للسور المحفوظة -->
     <div class="modal-overlay" id="modalOverlay">
         <div class="modal">
             <div class="modal-header">
@@ -412,6 +416,7 @@
         ];
 
         let memorizedSet = new Set(JSON.parse(localStorage.getItem('memorizedSurahs') || '[]'));
+        let currentSurahInfo = { name: '', versesCount: 0 }; // تخزين بيانات السورة المفتوحة حالياً
 
         function saveState() {
             localStorage.setItem('memorizedSurahs', JSON.stringify(Array.from(memorizedSet)));
@@ -430,7 +435,6 @@
         function render() {
             const countText = `${memorizedSet.size} من ${surahNames.length}`;
             document.getElementById('counterText').innerText = countText;
-            document.getElementById('floatingCount').innerText = `${memorizedSet.size} / 114`;
 
             const unmemorizedListEl = document.getElementById('unmemorizedList');
             unmemorizedListEl.innerHTML = '';
@@ -469,7 +473,6 @@
             }
         }
 
-        // إدارة فتح السورة باستخدام History API لمنع الخروج عند الضغط على زر الرجوع
         function openSurah(id, name) {
             history.pushState({ view: 'reader', id: id, name: name }, '', `#surah-${id}`);
             showReaderView(id, name);
@@ -479,7 +482,7 @@
             document.getElementById('mainView').style.display = 'none';
             document.getElementById('readerView').style.display = 'block';
             document.getElementById('readerTitle').innerText = `سورة ${name}`;
-            window.scrollTo(0, 0); // الانتقال لأعلى الصفحة عند الفتح
+            window.scrollTo(0, 0);
             
             const versesContainer = document.getElementById('versesContainer');
             const bismillahContainer = document.getElementById('bismillahContainer');
@@ -499,6 +502,12 @@
                     let ayahs = data.data.ayahs;
                     let htmlContent = '';
                     
+                    // تحديث بيانات السورة الحالية
+                    currentSurahInfo = {
+                        name: name,
+                        versesCount: ayahs.length
+                    };
+                    
                     ayahs.forEach((ayah, idx) => {
                         let text = ayah.text;
                         if (id === 1 && idx === 0) {
@@ -511,6 +520,7 @@
                     });
                     
                     versesContainer.innerHTML = htmlContent;
+                    updateBadgeContent(); // تحديث محتوى الزر فور اكتمال القراءة
                 } else {
                     versesContainer.innerHTML = '<div class="loading">حدث خطأ أثناء تحميل الآيات.</div>';
                 }
@@ -519,12 +529,10 @@
             }
         }
 
-        // زر الرجوع
         function goBack() {
             window.history.back();
         }
 
-        // مراقبة أحداث المتصفح (زر الرجوع في الهاتف أو المتصفح)
         window.addEventListener('popstate', (event) => {
             const floatingBadge = document.getElementById('topFloatingBadge');
             if (event.state && event.state.view === 'reader') {
@@ -536,21 +544,41 @@
             }
         });
 
-        // مراقبة التمرير لإظهار أو إخفاء الزر العائم العلوي
+        // تحديث محتوى الزر العائم حسب الصفحة المفتوحة حالياً
+        function updateBadgeContent() {
+            const readerView = document.getElementById('readerView');
+            const badgeContent = document.getElementById('floatingBadgeContent');
+
+            if (readerView.style.display === 'block') {
+                // نحن داخل صفحة قراءة السورة
+                badgeContent.innerText = `📖 سورة ${currentSurahInfo.name} - ${currentSurahInfo.versesCount} آية`;
+            } else {
+                // نحن في الصفحة الرئيسية (قائمة السور)
+                badgeContent.innerText = `📖 المحفوظة: ${memorizedSet.size} / 114`;
+            }
+        }
+
+        // مراقبة التمرير للأسفل في كلا الواجهتين
         window.addEventListener('scroll', () => {
             const floatingBadge = document.getElementById('topFloatingBadge');
-            const readerView = document.getElementById('readerView');
             
-            // يظهر الزر فقط داخل شاشة القراءة وعند التمرير للأسفل (أكثر من 150 بكسل)
-            if (readerView.style.display === 'block' && window.scrollY > 150) {
+            if (window.scrollY > 40) {
+                updateBadgeContent();
                 floatingBadge.style.display = 'block';
             } else {
                 floatingBadge.style.display = 'none';
             }
         });
 
-        function scrollToTop() {
-            window.scrollTo({ top: 0, behavior: 'smooth' });
+        function handleBadgeClick() {
+            const readerView = document.getElementById('readerView');
+            if (readerView.style.display === 'block') {
+                // العودة لأعلى السورة
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            } else {
+                // فتح قائمة السور المحفوظة
+                openModal();
+            }
         }
 
         function openModal() {
