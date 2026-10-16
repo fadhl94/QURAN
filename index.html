@@ -1,588 +1,342 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>متابع حفظ القرآن الكريم</title>
-    <link href="https://fonts.googleapis.com/css2?family=Amiri:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
-    <style>
-        :root {
-            --primary: #1b4332;
-            --accent: #2d6a4f;
-            --bg: #f8f9fa;
-            --card-bg: #ffffff;
-            --text: #212529;
-        }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#0f3d2e">
+<title>متابع حفظ القرآن الكريم</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Amiri+Quran&family=Amiri:wght@400;700&family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --primary:#0f3d2e; --primary-2:#1b5e47; --accent:#2d8a66; --gold:#c9a24b; --gold-soft:#f3e6c4;
+  --bg:#f4f6f3; --card:#ffffff; --text:#1c2a24; --muted:#6b7c74; --border:#e3e9e5;
+  --danger:#c0392b; --shadow:0 6px 20px rgba(15,61,46,.08); --reader-size:1.7rem;
+}
+[data-theme="dark"]{
+  --primary:#0b2a20; --primary-2:#12402f; --accent:#3fae84; --gold:#d9b45c; --gold-soft:#3a3320;
+  --bg:#0d1512; --card:#15211c; --text:#e6efe9; --muted:#8fa399; --border:#223229;
+  --danger:#e5604f; --shadow:0 6px 20px rgba(0,0,0,.35);
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--bg);color:var(--text);font-family:'Tajawal',system-ui,sans-serif;transition:background .3s,color .3s;
+  padding-bottom:env(safe-area-inset-bottom)}
+button{font-family:inherit;cursor:pointer}
+.app{max-width:560px;margin:0 auto;padding:0 16px 96px}
 
-        body {
-            font-family: system-ui, -apple-system, sans-serif;
-            background-color: var(--bg);
-            color: var(--text);
-            margin: 0;
-            padding: 16px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-        }
+/* ---------- Header ---------- */
+.hero{background:linear-gradient(160deg,var(--primary) 0%,var(--primary-2) 100%);color:#fff;
+  margin:0 -16px;padding:calc(env(safe-area-inset-top) + 18px) 20px 70px;border-radius:0 0 32px 32px;position:relative;overflow:hidden}
+.hero::before,.hero::after{content:"";position:absolute;border:1.5px solid rgba(255,255,255,.08);border-radius:50%}
+.hero::before{width:260px;height:260px;top:-110px;left:-70px}
+.hero::after{width:180px;height:180px;bottom:-90px;right:-40px}
+.hero-top{display:flex;align-items:center;justify-content:space-between;position:relative;z-index:1}
+.hero h1{margin:0;font-size:1.35rem;font-weight:800;letter-spacing:.2px}
+.hero p{margin:4px 0 0;font-size:.85rem;opacity:.8}
+.icon-btn{background:rgba(255,255,255,.14);border:none;color:#fff;width:40px;height:40px;border-radius:12px;font-size:1.1rem;
+  display:inline-flex;align-items:center;justify-content:center;transition:background .2s,transform .15s}
+.icon-btn:hover{background:rgba(255,255,255,.25)}
+.icon-btn:active{transform:scale(.92)}
 
-        .container {
-            width: 100%;
-            max-width: 500px;
-        }
+/* ---------- Progress card ---------- */
+.progress-card{background:var(--card);border-radius:22px;box-shadow:var(--shadow);padding:18px;margin-top:-48px;position:relative;z-index:2;
+  display:flex;align-items:center;gap:18px;border:1px solid var(--border)}
+.ring{--p:0;width:92px;height:92px;border-radius:50%;flex-shrink:0;display:grid;place-items:center;
+  background:conic-gradient(var(--accent) calc(var(--p)*1%),var(--border) 0);transition:background .5s}
+.ring-inner{width:74px;height:74px;border-radius:50%;background:var(--card);display:grid;place-items:center;font-weight:800;font-size:1.15rem;color:var(--primary-2)}
+[data-theme="dark"] .ring-inner{color:var(--accent)}
+.stats{flex:1;min-width:0}
+.stats .big{font-size:1.5rem;font-weight:800;line-height:1.2}
+.stats .big small{font-size:.95rem;font-weight:500;color:var(--muted)}
+.stats .sub{color:var(--muted);font-size:.85rem;margin-top:4px}
+.bar{height:8px;background:var(--border);border-radius:99px;margin-top:10px;overflow:hidden}
+.bar>i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--accent),var(--gold));border-radius:99px;transition:width .5s}
 
-        .counter-card {
-            background-color: var(--primary);
-            color: white;
-            border-radius: 16px;
-            padding: 20px;
-            text-align: center;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-            cursor: pointer;
-            transition: transform 0.2s, background-color 0.2s;
-        }
+/* ---------- Toolbar ---------- */
+.toolbar{position:sticky;top:0;z-index:20;background:var(--bg);padding:14px 0 10px;margin-top:6px}
+.search{position:relative}
+.search input{width:100%;border:1px solid var(--border);background:var(--card);color:var(--text);border-radius:14px;
+  padding:13px 44px 13px 14px;font-family:inherit;font-size:1rem;outline:none;transition:border .2s,box-shadow .2s}
+.search input:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(45,138,102,.18)}
+.search span{position:absolute;right:15px;top:50%;transform:translateY(-50%);opacity:.55}
+.tabs{display:flex;gap:8px;margin-top:10px}
+.tab{flex:1;border:1px solid var(--border);background:var(--card);color:var(--muted);border-radius:12px;padding:9px 6px;font-size:.9rem;font-weight:500;transition:all .2s}
+.tab.active{background:var(--primary-2);border-color:var(--primary-2);color:#fff;font-weight:700}
+.tab b{font-weight:700;margin-inline-start:4px;opacity:.85}
 
-        .counter-card:hover {
-            background-color: var(--accent);
-            transform: translateY(-2px);
-        }
+/* ---------- Surah list ---------- */
+.list{display:flex;flex-direction:column;gap:10px;margin-top:4px}
+.surah{display:flex;align-items:center;gap:14px;background:var(--card);border:1px solid var(--border);border-radius:16px;padding:12px 14px;
+  box-shadow:0 2px 8px rgba(0,0,0,.03);cursor:pointer;transition:transform .15s,box-shadow .2s,border-color .2s;animation:fade .3s ease both}
+.surah:hover{transform:translateY(-2px);box-shadow:var(--shadow);border-color:var(--accent)}
+.surah.done{border-color:rgba(45,138,102,.45);background:linear-gradient(90deg,rgba(45,138,102,.08),var(--card))}
+.num{width:42px;height:42px;flex-shrink:0;display:grid;place-items:center;font-weight:700;font-size:.95rem;color:var(--primary-2);position:relative}
+[data-theme="dark"] .num{color:var(--accent)}
+.num::before{content:"";position:absolute;inset:3px;background:var(--gold-soft);border:1.5px solid var(--gold);border-radius:10px;transform:rotate(45deg)}
+.num span{position:relative}
+.s-info{flex:1;min-width:0}
+.s-name{font-family:'Amiri',serif;font-size:1.3rem;font-weight:700;line-height:1.4}
+.s-meta{font-size:.78rem;color:var(--muted)}
+.check{width:42px;height:42px;border-radius:12px;border:2px solid var(--border);background:transparent;color:transparent;font-size:1.2rem;font-weight:800;
+  display:grid;place-items:center;transition:all .2s;flex-shrink:0}
+.check:hover{border-color:var(--accent)}
+.surah.done .check{background:var(--accent);border-color:var(--accent);color:#fff}
+.empty{text-align:center;color:var(--muted);padding:40px 10px}
+.empty .e-ico{font-size:2.4rem;margin-bottom:6px}
+@keyframes fade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
 
-        .counter-card h2 {
-            margin: 0 0 8px 0;
-            font-size: 1.1rem;
-            font-weight: normal;
-        }
+/* ---------- Reader ---------- */
+#readerView{display:none}
+.reader-bar{position:sticky;top:0;z-index:30;margin:0 -16px;padding:calc(env(safe-area-inset-top) + 10px) 14px 10px;background:var(--primary);color:#fff;
+  display:flex;align-items:center;gap:10px;box-shadow:0 4px 14px rgba(0,0,0,.18)}
+.reader-bar h2{flex:1;margin:0;text-align:center;font-family:'Amiri',serif;font-size:1.5rem}
+.reader-bar .icon-btn{width:38px;height:38px;font-size:1rem;font-weight:700}
+.reader-card{background:var(--card);border:1px solid var(--border);border-radius:20px;box-shadow:var(--shadow);margin-top:16px;padding:22px 18px}
+.s-banner{border:2px solid var(--gold);border-radius:14px;padding:10px;text-align:center;margin-bottom:18px;background:var(--gold-soft);position:relative}
+.s-banner::after{content:"";position:absolute;inset:4px;border:1px solid var(--gold);border-radius:10px;opacity:.5;pointer-events:none}
+.s-banner b{font-family:'Amiri',serif;font-size:1.5rem;color:var(--text)}
+.s-banner small{display:block;color:var(--muted);font-size:.8rem;margin-top:2px}
+.bismillah{text-align:center;font-family:'Amiri Quran','Amiri',serif;font-size:calc(var(--reader-size) + .15rem);color:var(--accent);margin:6px 0 18px;line-height:2}
+.verses{font-family:'Amiri Quran','Amiri',serif;font-size:var(--reader-size);line-height:2.6;text-align:justify;text-align-last:center;direction:rtl;word-spacing:2px}
+.ayah-no{display:inline-flex;align-items:center;justify-content:center;min-width:1.9em;height:1.9em;margin:0 4px;padding:0 3px;border:1.5px solid var(--gold);color:var(--accent);
+  border-radius:50%;font-family:'Tajawal',sans-serif;font-size:.5em;font-weight:700;vertical-align:middle;background:var(--gold-soft)}
+.loading,.error{text-align:center;color:var(--muted);padding:40px 10px;font-family:'Tajawal',sans-serif;font-size:1rem;line-height:1.8}
+.spinner{width:34px;height:34px;border:3px solid var(--border);border-top-color:var(--accent);border-radius:50%;margin:0 auto 12px;animation:spin .8s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.retry{margin-top:10px;background:var(--accent);color:#fff;border:none;padding:9px 20px;border-radius:10px;font-size:.95rem}
+.reader-actions{display:flex;gap:10px;margin-top:16px}
+.btn{flex:1;border:1px solid var(--border);background:var(--card);color:var(--text);padding:13px 10px;border-radius:14px;font-size:.95rem;font-weight:700;transition:all .2s}
+.btn:hover:not(:disabled){border-color:var(--accent);color:var(--accent)}
+.btn:disabled{opacity:.35;cursor:default}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:#fff}
+.btn.primary:hover{opacity:.92;color:#fff}
+.btn.undo{background:transparent;color:var(--danger);border-color:var(--danger)}
 
-        .counter-number {
-            font-size: 2.2rem;
-            font-weight: bold;
-            margin: 4px 0;
-            color: #d8f3dc;
-        }
-
-        .counter-hint {
-            font-size: 0.8rem;
-            opacity: 0.8;
-            margin-top: 8px;
-        }
-
-        .section-title {
-            margin: 24px 0 12px 0;
-            font-size: 1.2rem;
-            color: var(--primary);
-        }
-
-        .surah-list {
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-        }
-
-        .surah-item {
-            background-color: var(--card-bg);
-            border-radius: 12px;
-            padding: 14px 16px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            box-shadow: 0 2px 6px rgba(0,0,0,0.05);
-        }
-
-        .surah-info {
-            font-size: 1.1rem;
-            font-weight: 500;
-            cursor: pointer;
-            flex-grow: 1;
-            transition: color 0.2s;
-        }
-
-        .surah-info:hover {
-            color: var(--accent);
-        }
-
-        .btn-memorize {
-            background-color: var(--accent);
-            color: white;
-            border: none;
-            padding: 8px 16px;
-            border-radius: 8px;
-            font-size: 0.9rem;
-            cursor: pointer;
-            transition: opacity 0.2s;
-        }
-
-        .btn-memorize:hover {
-            opacity: 0.9;
-        }
-
-        .btn-unmemorize {
-            background-color: #e63946;
-            color: white;
-            border: none;
-            padding: 6px 12px;
-            border-radius: 6px;
-            font-size: 0.85rem;
-            cursor: pointer;
-        }
-
-        #readerView {
-            display: none;
-            background: white;
-            border-radius: 16px;
-            padding: 20px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-        }
-
-        .reader-header {
-            display: flex;
-            align-items: center;
-            border-bottom: 2px solid #eee;
-            padding-bottom: 12px;
-            margin-bottom: 16px;
-            gap: 12px;
-        }
-
-        .back-btn {
-            background-color: #e9ecef;
-            border: none;
-            padding: 8px 14px;
-            border-radius: 8px;
-            cursor: pointer;
-            font-size: 1rem;
-            font-weight: bold;
-            color: var(--primary);
-        }
-
-        .back-btn:hover {
-            background-color: #dee2e6;
-        }
-
-        .reader-header h2 {
-            margin: 0;
-            color: var(--primary);
-            font-size: 1.4rem;
-        }
-
-        .bismillah {
-            text-align: center;
-            font-family: 'Amiri', serif;
-            font-size: 1.5rem;
-            font-weight: bold;
-            color: var(--accent);
-            margin: 16px 0 24px 0;
-        }
-
-        .verses-text {
-            font-family: 'Amiri', serif;
-            font-size: 1.5rem;
-            line-height: 2.5;
-            text-align: justify;
-            color: #2b2b2b;
-            direction: rtl;
-        }
-
-        .verse-number {
-            display: inline-block;
-            padding: 0 6px;
-            color: var(--accent);
-            font-size: 1.2rem;
-            font-weight: bold;
-        }
-
-        .loading {
-            text-align: center;
-            padding: 40px;
-            color: #666;
-            font-size: 1.1rem;
-            font-family: system-ui, sans-serif;
-        }
-
-        .modal-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: rgba(0,0,0,0.5);
-            display: none;
-            justify-content: center;
-            align-items: center;
-            padding: 16px;
-            z-index: 1000;
-        }
-
-        .modal {
-            background: white;
-            border-radius: 16px;
-            padding: 20px;
-            width: 100%;
-            max-width: 400px;
-            max-height: 80vh;
-            display: flex;
-            flex-direction: column;
-        }
-
-        .modal-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            border-bottom: 1px solid #eee;
-            padding-bottom: 12px;
-            margin-bottom: 12px;
-        }
-
-        .modal-header h3 {
-            margin: 0;
-            color: var(--primary);
-        }
-
-        .close-btn {
-            background: none;
-            border: none;
-            font-size: 1.5rem;
-            cursor: pointer;
-            color: #888;
-        }
-
-        .modal-body {
-            overflow-y: auto;
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-        }
-
-        .empty-msg {
-            text-align: center;
-            color: #777;
-            padding: 20px 0;
-        }
-
-        .install-fab {
-            position: fixed;
-            bottom: 24px;
-            left: 24px;
-            background-color: var(--accent);
-            color: white;
-            border: none;
-            border-radius: 50px;
-            padding: 12px 20px;
-            font-size: 1rem;
-            font-weight: bold;
-            box-shadow: 0 4px 14px rgba(0,0,0,0.3);
-            cursor: pointer;
-            z-index: 2000;
-            display: none;
-            align-items: center;
-            gap: 8px;
-            transition: background-color 0.2s, transform 0.2s;
-        }
-
-        .install-fab:hover {
-            background-color: var(--primary);
-            transform: scale(1.05);
-        }
-
-        .top-floating-badge {
-            position: fixed;
-            top: 16px;
-            left: 50%;
-            transform: translateX(-50%);
-            background-color: var(--primary);
-            color: white;
-            padding: 8px 18px;
-            border-radius: 30px;
-            font-size: 0.95rem;
-            font-weight: bold;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.25);
-            z-index: 3000;
-            display: none;
-            cursor: pointer;
-            border: 2px solid #d8f3dc;
-            transition: opacity 0.3s ease;
-            white-space: nowrap;
-        }
-
-        .top-floating-badge:hover {
-            background-color: var(--accent);
-        }
-    </style>
+/* ---------- Misc ---------- */
+.toast{position:fixed;bottom:calc(env(safe-area-inset-bottom) + 24px);left:50%;transform:translate(-50%,30px);background:var(--primary);color:#fff;padding:11px 20px;border-radius:99px;
+  font-size:.92rem;font-weight:500;box-shadow:0 8px 24px rgba(0,0,0,.28);opacity:0;pointer-events:none;transition:all .3s;z-index:100;white-space:nowrap}
+.toast.show{opacity:1;transform:translate(-50%,0)}
+.install{position:fixed;bottom:calc(env(safe-area-inset-bottom) + 20px);right:16px;display:none;align-items:center;gap:8px;background:var(--gold);color:#2b2108;border:none;
+  border-radius:99px;padding:12px 18px;font-weight:800;font-size:.95rem;box-shadow:0 6px 18px rgba(0,0,0,.25);z-index:90}
+.to-top{position:fixed;bottom:calc(env(safe-area-inset-bottom) + 20px);left:16px;width:46px;height:46px;border-radius:50%;border:none;background:var(--primary-2);color:#fff;
+  font-size:1.2rem;box-shadow:0 6px 18px rgba(0,0,0,.25);display:none;z-index:80}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
 </head>
 <body>
+<div class="app">
 
-    <button id="topFloatingBadge" class="top-floating-badge" onclick="handleBadgeClick()">
-        <span id="floatingBadgeContent">📖 المحفوظة: 0 / 114</span>
-    </button>
-
-    <div class="container">
-        <div id="mainView">
-            <div class="counter-card" onclick="openModal()">
-                <h2>السور المحفوظة</h2>
-                <div class="counter-number" id="counterText">0 من 114</div>
-                <div class="counter-hint">(اضغط هنا لعرض قائمة السور المحفوظة)</div>
-            </div>
-
-            <h3 class="section-title">السور غير المحفوظة</h3>
-            <div class="surah-list" id="unmemorizedList"></div>
+  <!-- ============ الصفحة الرئيسية ============ -->
+  <div id="mainView">
+    <header class="hero">
+      <div class="hero-top">
+        <div>
+          <h1>📖 متابع حفظ القرآن الكريم</h1>
+          <p>«وَلَقَدْ يَسَّرْنَا الْقُرْآنَ لِلذِّكْرِ»</p>
         </div>
+        <button class="icon-btn" id="themeBtn" aria-label="تبديل الوضع الليلي">🌙</button>
+      </div>
+    </header>
 
-        <div id="readerView">
-            <div class="reader-header">
-                <button class="back-btn" onclick="goBack()">← رجوع</button>
-                <h2 id="readerTitle">سورة ...</h2>
-            </div>
-            <div id="bismillahContainer"></div>
-            <div class="verses-text" id="versesContainer">
-                <div class="loading">جاري تحميل الآيات...</div>
-            </div>
-        </div>
+    <section class="progress-card" aria-label="التقدم">
+      <div class="ring" id="ring"><div class="ring-inner" id="ringText">٠٪</div></div>
+      <div class="stats">
+        <div class="big" id="countBig">٠ <small>من ١١٤ سورة</small></div>
+        <div class="sub" id="versesSub">٠ آية محفوظة من ٦٬٢٣٦</div>
+        <div class="bar"><i id="barFill"></i></div>
+      </div>
+    </section>
+
+    <div class="toolbar">
+      <div class="search">
+        <span>🔍</span>
+        <input id="search" type="search" placeholder="ابحث باسم السورة أو رقمها..." autocomplete="off">
+      </div>
+      <div class="tabs" id="tabs">
+        <button class="tab active" data-f="all">الكل<b id="cAll"></b></button>
+        <button class="tab" data-f="todo">غير محفوظة<b id="cTodo"></b></button>
+        <button class="tab" data-f="done">محفوظة<b id="cDone"></b></button>
+      </div>
     </div>
 
-    <button id="installBtn" class="install-fab">
-        📥 تثبيت التطبيق
-    </button>
+    <div class="list" id="list"></div>
+  </div>
 
-    <div class="modal-overlay" id="modalOverlay">
-        <div class="modal">
-            <div class="modal-header">
-                <h3>السور المحفوظة</h3>
-                <button class="close-btn" onclick="closeModal()">&times;</button>
-            </div>
-            <div class="modal-body" id="memorizedList"></div>
-        </div>
+  <!-- ============ صفحة القراءة ============ -->
+  <div id="readerView">
+    <div class="reader-bar">
+      <button class="icon-btn" id="backBtn" aria-label="رجوع">➜</button>
+      <h2 id="readerTitle">سورة</h2>
+      <button class="icon-btn" id="fontMinus" aria-label="تصغير الخط">أ-</button>
+      <button class="icon-btn" id="fontPlus" aria-label="تكبير الخط">أ+</button>
     </div>
+    <div class="reader-card">
+      <div class="s-banner"><b id="bannerName"></b><small id="bannerMeta"></small></div>
+      <div id="bismillah"></div>
+      <div class="verses" id="verses"></div>
+    </div>
+    <div class="reader-actions">
+      <button class="btn" id="nextBtn">‹ السورة التالية</button>
+      <button class="btn primary" id="markBtn">تم الحفظ ✓</button>
+      <button class="btn" id="prevBtn">السورة السابقة ›</button>
+    </div>
+  </div>
+</div>
 
-    <script>
-        const manifestData = {
-            name: "متابع حفظ القرآن الكريم",
-            short_name: "حفظ القرآن",
-            start_url: window.location.href,
-            display: "standalone",
-            background_color: "#1b4332",
-            theme_color: "#1b4332",
-            icons: [
-                {
-                    src: "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'><rect width='512' height='512' rx='120' fill='%231b4332'/><text x='50%' y='53%' font-size='220' text-anchor='middle' dominant-baseline='middle'>📖</text></svg>",
-                    sizes: "512x512",
-                    type: "image/svg+xml"
-                }
-            ]
-        };
-        const blob = new Blob([JSON.stringify(manifestData)], {type: 'application/json'});
-        const manifestURL = URL.createObjectURL(blob);
-        const link = document.createElement('link');
-        link.rel = 'manifest';
-        link.href = manifestURL;
-        document.head.appendChild(link);
+<button class="install" id="installBtn">📥 تثبيت التطبيق</button>
+<button class="to-top" id="toTop" aria-label="للأعلى">↑</button>
+<div class="toast" id="toast" role="status"></div>
 
-        let deferredPrompt;
-        const installBtn = document.getElementById('installBtn');
+<script>
+(() => {
+'use strict';
 
-        window.addEventListener('beforeinstallprompt', (e) => {
-            e.preventDefault();
-            deferredPrompt = e;
-            installBtn.style.display = 'flex';
-        });
+/* ================= البيانات ================= */
+const SURAHS = ["الفاتحة","البقرة","آل عمران","النساء","المائدة","الأنعام","الأعراف","الأنفال","التوبة","يونس","هود","يوسف","الرعد","إبراهيم","الحجر","النحل","الإسراء","الكهف","مريم","طه","الأنبياء","الحج","المؤمنون","النور","الفرقان","الشعراء","النمل","القصص","العنكبوت","الروم","لقمان","السجدة","الأحزاب","سبأ","فاطر","يس","الصافات","ص","الزمر","غافر","فصلت","الشورى","الزخرف","الدخان","الجاثية","الأحقاف","محمد","الفتح","الحجرات","ق","الذاريات","الطور","النجم","القمر","الرحمن","الواقعة","الحديد","المجادلة","الحشر","الممتحنة","الصف","الجمعة","المنافقون","التغابن","الطلاق","التحريم","الملك","القلم","الحاقة","المعارج","نوح","الجن","المزمل","المدثر","القيامة","الإنسان","المرسلات","النبأ","النازعات","عبس","التكوير","الانفطار","المطففين","الانشقاق","البروج","الطارق","الأعلى","الغاشية","الفجر","البلد","الشمس","الليل","الضحى","الشرح","التين","العلق","القدر","البينة","الزلزلة","العاديات","القارعة","التكاثر","العصر","الهمزة","الفيل","قريش","الماعون","الكوثر","الكافرون","النصر","المسد","الإخلاص","الفلق","الناس"];
+const VERSES = [7,286,200,176,120,165,206,75,129,109,123,111,43,52,99,128,111,110,98,135,112,78,118,64,77,227,93,88,69,60,34,30,73,54,45,83,182,88,75,85,54,53,89,59,37,35,38,29,18,45,60,49,62,55,78,96,29,22,24,13,14,11,11,18,12,12,30,52,52,44,28,28,20,56,40,31,50,40,46,42,29,19,36,25,22,17,19,26,30,20,15,21,11,8,8,19,5,8,8,11,11,8,3,9,5,4,7,3,6,3,5,4,5,6];
+const TOTAL_VERSES = VERSES.reduce((a, b) => a + b, 0);
+const BISMILLAH = "بِسْمِ ٱللَّهِ ٱلرَّحْمَـٰنِ ٱلرَّحِيمِ";
+const BISM_WORDS = ["بسم", "الله", "الرحمن", "الرحيم"];
 
-        installBtn.addEventListener('click', async () => {
-            if (deferredPrompt) {
-                deferredPrompt.prompt();
-                const { outcome } = await deferredPrompt.userChoice;
-                if (outcome === 'accepted') {
-                    installBtn.style.display = 'none';
-                }
-                deferredPrompt = null;
-            }
-        });
+/* ================= أدوات ================= */
+const $ = id => document.getElementById(id);
+const ar = n => Number(n).toLocaleString('ar-EG');
+const norm = s => s
+  .replace(/[\u0640\u064B-\u065F\u0670\u06D6-\u06ED\uFEFF\u200C\u200D]/g, '')
+  .replace(/[ٱأإآ]/g, 'ا').replace(/[یى]/g, 'ي').replace(/ة/g, 'ه').trim();
 
-        const surahNames = [
-            "الفاتحة", "البقرة", "آل عمران", "النساء", "المائدة", "الأنعام", "الأعراف", "الأنفال", "التوبة", "يونس",
-            "هود", "يوسف", "الرعد", "إبراهيم", "الحجر", "النحل", "الإسراء", "الكهف", "مريم", "طه",
-            "الأنبياء", "الحج", "المؤمنون", "النور", "الفرقان", "الشعراء", "النمل", "القصص", "العنكبوت", "الروم",
-            "لقمان", "السجدة", "الأحزاب", "سبأ", "فاطر", "يس", "الصافات", "ص", "الزمر", "غافر",
-            "فصلت", "الشورى", "الزخرف", "الدخان", "الجاثية", "الأحقاف", "محمد", "الفتح", "الحجرات", "ق",
-            "الذاريات", "الطور", "النجم", "القمر", "الرحمن", "الواقعة", "الحديد", "المجادلة", "الحشر", "الممتحنة",
-            "الصف", "الجمعة", "المنافقون", "التغابن", "الطلاق", "التحريم", "الملك", "القلم", "الحاقة", "المعارج",
-            "نوح", "الجن", "المزمل", "المدثر", "القيامة", "الإنسان", "المرسلات", "النبأ", "النازعات", "عبس",
-            "التكوير", "الانفطار", "المطففين", "الانشقاق", "البروج", "الطارق", "الأعلى", "الغاشية", "الفجر", "البلد",
-            "الشمس", "الليل", "الضحى", "الشرح", "التين", "العلق", "القدر", "البينة", "الزلزلة", "العاديات",
-            "القارعة", "التكاثر", "العصر", "الهمزة", "الفيل", "قريش", "الماعون", "الكوثر", "الكافرون", "النصر",
-            "المسد", "الإخلاص", "الفلق", "الناس"
-        ];
+const store = {
+  get(k, d) { try { const v = localStorage.getItem(k); return v === null ? d : JSON.parse(v); } catch { return d; } },
+  set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); return true; } catch { return false; } }
+};
 
-        let memorizedSet = new Set(JSON.parse(localStorage.getItem('memorizedSurahs') || '[]'));
-        let currentSurahInfo = { name: '', versesCount: 0 };
+/* ================= الحالة ================= */
+let memorized = new Set((store.get('memorizedSurahs', []) || []).filter(n => Number.isInteger(n) && n >= 1 && n <= 114));
+let filter = 'all';
+let query = '';
+let currentId = null;
+let loadToken = 0;
+let fontSize = store.get('readerFontSize', 1.7);
 
-        function saveState() {
-            localStorage.setItem('memorizedSurahs', JSON.stringify(Array.from(memorizedSet)));
-            render();
-        }
+/* ================= السمة ================= */
+function applyTheme(t) {
+  document.documentElement.setAttribute('data-theme', t);
+  $('themeBtn').textContent = t === 'dark' ? '☀️' : '🌙';
+  document.querySelector('meta[name="theme-color"]').content = t === 'dark' ? '#0b2a20' : '#0f3d2e';
+}
+applyTheme(store.get('theme', matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'));
+$('themeBtn').onclick = () => {
+  const t = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+  applyTheme(t); store.set('theme', t);
+};
 
-        function toggleSurah(id) {
-            if (memorizedSet.has(id)) {
-                memorizedSet.delete(id);
-            } else {
-                memorizedSet.add(id);
-            }
-            saveState();
-        }
+/* ================= Toast ================= */
+let toastTimer;
+function toast(msg) {
+  const el = $('toast'); el.textContent = msg; el.classList.add('show');
+  clearTimeout(toastTimer); toastTimer = setTimeout(() => el.classList.remove('show'), 1900);
+}
 
-        function render() {
-            const countText = `${memorizedSet.size} من ${surahNames.length}`;
-            document.getElementById('counterText').innerText = countText;
+/* ================= الرئيسية ================= */
+function save() { store.set('memorizedSurahs', [...memorized].sort((a, b) => a - b)); }
 
-            const unmemorizedListEl = document.getElementById('unmemorizedList');
-            unmemorizedListEl.innerHTML = '';
+function toggle(id) {
+  if (memorized.has(id)) { memorized.delete(id); toast(`أُلغي حفظ سورة ${SURAHS[id - 1]}`); }
+  else { memorized.add(id); toast(`ما شاء الله! تم حفظ سورة ${SURAHS[id - 1]} ✨`); }
+  save(); renderStats(); renderList(false);
+  if (currentId === id) updateMarkBtn();
+}
 
-            surahNames.forEach((name, index) => {
-                const id = index + 1;
-                if (!memorizedSet.has(id)) {
-                    const item = document.createElement('div');
-                    item.className = 'surah-item';
-                    item.innerHTML = `
-                        <div class="surah-info" onclick="openSurah(${id}, '${name}')">${id}. سورة ${name}</div>
-                        <button class="btn-memorize" onclick="event.stopPropagation(); toggleSurah(${id})">تم الحفظ</button>
-                    `;
-                    unmemorizedListEl.appendChild(item);
-                }
-            });
+function renderStats() {
+  const n = memorized.size;
+  const pct = Math.round(n / 114 * 100);
+  let v = 0; memorized.forEach(id => v += VERSES[id - 1]);
+  $('ring').style.setProperty('--p', pct);
+  $('ringText').textContent = ar(pct) + '٪';
+  $('countBig').innerHTML = `${ar(n)} <small>من ${ar(114)} سورة</small>`;
+  $('versesSub').textContent = `${ar(v)} آية محفوظة من ${ar(TOTAL_VERSES)}`;
+  $('barFill').style.width = (v / TOTAL_VERSES * 100) + '%';
+  $('cAll').textContent = `(${ar(114)})`;
+  $('cDone').textContent = `(${ar(n)})`;
+  $('cTodo').textContent = `(${ar(114 - n)})`;
+}
 
-            const memorizedListEl = document.getElementById('memorizedList');
-            memorizedListEl.innerHTML = '';
+function renderList(animate = true) {
+  const q = norm(query);
+  const list = $('list');
+  const frag = document.createDocumentFragment();
+  let count = 0;
+  SURAHS.forEach((name, i) => {
+    const id = i + 1, done = memorized.has(id);
+    if (filter === 'done' && !done) return;
+    if (filter === 'todo' && done) return;
+    if (q && !norm(name).includes(q) && String(id) !== q && ar(id) !== q) return;
+    count++;
+    const row = document.createElement('div');
+    row.className = 'surah' + (done ? ' done' : '');
+    row.dataset.id = id;
+    row.tabIndex = 0;
+    row.setAttribute('role', 'button');
+    if (!animate) row.style.animation = 'none';
+    else row.style.animationDelay = Math.min(count * 15, 300) + 'ms';
+    row.innerHTML = `
+      <div class="num"><span>${ar(id)}</span></div>
+      <div class="s-info"><div class="s-name"></div><div class="s-meta">${ar(VERSES[i])} آية</div></div>
+      <button class="check" data-act="toggle" aria-label="${done ? 'إلغاء الحفظ' : 'تم الحفظ'}">✓</button>`;
+    row.querySelector('.s-name').textContent = 'سورة ' + name;
+    frag.appendChild(row);
+  });
+  list.replaceChildren(frag);
+  if (!count) {
+    list.innerHTML = `<div class="empty"><div class="e-ico">${filter === 'done' ? '🌱' : '🔎'}</div>${
+      filter === 'done' && !q ? 'لم تحدد أي سورة كمحفوظة بعد' : 'لا توجد نتائج مطابقة'}</div>`;
+  }
+}
 
-            if (memorizedSet.size === 0) {
-                memorizedListEl.innerHTML = '<div class="empty-msg">لم تقم بتحديد أي سورة كمحفوظة بعد.</div>';
-            } else {
-                surahNames.forEach((name, index) => {
-                    const id = index + 1;
-                    if (memorizedSet.has(id)) {
-                        const item = document.createElement('div');
-                        item.className = 'surah-item';
-                        item.innerHTML = `
-                            <div class="surah-info" onclick="closeModal(); openSurah(${id}, '${name}')">${id}. سورة ${name}</div>
-                            <button class="btn-unmemorize" onclick="event.stopPropagation(); toggleSurah(${id})">إلغاء الحفظ</button>
-                        `;
-                        memorizedListEl.appendChild(item);
-                    }
-                });
-            }
-        }
+$('list').addEventListener('click', e => {
+  const row = e.target.closest('.surah'); if (!row) return;
+  const id = +row.dataset.id;
+  if (e.target.closest('[data-act="toggle"]')) { toggle(id); return; }
+  openSurah(id);
+});
+$('list').addEventListener('keydown', e => {
+  if ((e.key === 'Enter' || e.key === ' ') && e.target.classList.contains('surah')) { e.preventDefault(); openSurah(+e.target.dataset.id); }
+});
+$('tabs').addEventListener('click', e => {
+  const t = e.target.closest('.tab'); if (!t) return;
+  filter = t.dataset.f;
+  document.querySelectorAll('.tab').forEach(x => x.classList.toggle('active', x === t));
+  renderList();
+});
+let st;
+$('search').addEventListener('input', e => { clearTimeout(st); st = setTimeout(() => { query = e.target.value; renderList(false); }, 120); });
 
-        function openSurah(id, name) {
-            history.pushState({ view: 'reader', id: id, name: name }, '', `#surah-${id}`);
-            showReaderView(id, name);
-        }
+/* ================= القراءة ================= */
+function cleanAyahs(id, ayahs) {
+  // يعيد [{n, t}] بعد إزالة البسملة المدمجة في الآية الأولى (ما عدا الفاتحة حيث هي آية مستقلة)
+  return ayahs.map((a, idx) => {
+    let t = String(a.text || '');
+    if (idx === 0 && id !== 1 && id !== 9) {
+      const toks = t.match(/\S+\s*/g) || [];
+      if (toks.length >= 4 && BISM_WORDS.every((w, k) => norm(toks[k]) === w)) {
+        t = toks.slice(4).join('').trim();
+      }
+    }
+    return { n: a.numberInSurah, t };
+  }).filter(a => a.t);
+}
 
-        async function showReaderView(id, name) {
-            document.getElementById('mainView').style.display = 'none';
-            document.getElementById('readerView').style.display = 'block';
-            document.getElementById('readerTitle').innerText = `سورة ${name}`;
-            window.scrollTo(0, 0);
-            
-            const versesContainer = document.getElementById('versesContainer');
-            const bismillahContainer = document.getElementById('bismillahContainer');
-            
-            versesContainer.innerHTML = '<div class="loading">جاري تحميل الآيات...</div>';
-            bismillahContainer.innerHTML = '';
-
-            // عرض البسملة لجميع السور عدا التوبة (رقم 9)
-            if (id !== 9) {
-                bismillahContainer.innerHTML = '<div class="bismillah">بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ</div>';
-            }
-
-            try {
-                let response = await fetch(`https://api.alquran.cloud/v1/surah/${id}`);
-                let data = await response.json();
-                
-                if (data.code === 200) {
-                    let ayahs = data.data.ayahs;
-                    let htmlContent = '';
-                    
-                    currentSurahInfo = {
-                        name: name,
-                        versesCount: ayahs.length
-                    };
-                    
-                    ayahs.forEach((ayah, idx) => {
-                        let text = ayah.text;
-                        
-                        // تنظيف وحذف أي بسملة ملتصقة ببداية الآية الأولى لأي سورة عدا التوبة
-                        if (idx === 0 && id !== 9) {
-                            text = text.replace(/^بِسْمِ\s+اللَّهِ\s+الرَّحْمَٰنِ\s+الرَّحِيمِ\s*/g, '');
-                            text = text.replace(/^بِسْمِ\s+اللَّهِ\s+الرَّحْمَٰنِ\s+الرَّحِيمِ/g, '');
-                        }
-                        
-                        let ayahNum = ` <span class="verse-number">﴿${ayah.numberInSurah}﴾</span> `;
-                        htmlContent += text + ayahNum;
-                    });
-                    
-                    versesContainer.innerHTML = htmlContent;
-                    updateBadgeContent();
-                } else {
-                    versesContainer.innerHTML = '<div class="loading">حدث خطأ أثناء تحميل الآيات.</div>';
-                }
-            } catch (error) {
-                versesContainer.innerHTML = '<div class="loading">يرجى التأكد من اتصالك بالإنترنت لتحميل الآيات في المرة الأولى.</div>';
-            }
-        }
-
-        function goBack() {
-            window.history.back();
-        }
-
-        window.addEventListener('popstate', (event) => {
-            const floatingBadge = document.getElementById('topFloatingBadge');
-            if (event.state && event.state.view === 'reader') {
-                showReaderView(event.state.id, event.state.name);
-            } else {
-                document.getElementById('readerView').style.display = 'none';
-                document.getElementById('mainView').style.display = 'block';
-                floatingBadge.style.display = 'none';
-            }
-        });
-
-        function updateBadgeContent() {
-            const readerView = document.getElementById('readerView');
-            const badgeContent = document.getElementById('floatingBadgeContent');
-
-            if (readerView.style.display === 'block') {
-                badgeContent.innerText = `📖 سورة ${currentSurahInfo.name} - ${currentSurahInfo.versesCount} آية`;
-            } else {
-                badgeContent.innerText = `📖 المحفوظة: ${memorizedSet.size} / 114`;
-            }
-        }
-
-        window.addEventListener('scroll', () => {
-            const floatingBadge = document.getElementById('topFloatingBadge');
-            
-            if (window.scrollY > 40) {
-                updateBadgeContent();
-                floatingBadge.style.display = 'block';
-            } else {
-                floatingBadge.style.display = 'none';
-            }
-        });
-
-        function handleBadgeClick() {
-            const readerView = document.getElementById('readerView');
-            if (readerView.style.display === 'block') {
-                window.scrollTo({ top: 0, behavior: 'smooth' });
-            } else {
-                openModal();
-            }
-        }
-
-        function openModal() {
-            document.getElementById('modalOverlay').style.display = 'flex';
-        }
-
-        function closeModal() {
-            document.getElementById('modalOverlay').style.display = 'none';
-        }
-
-        window.addEventListener('click', function(e) {
-            if (e.target.id === 'modalOverlay') closeModal();
-        });
-
-        render();
-    </script>
-</body>
-</html>
+async function fetchSurah(id) {
+  const cacheKey = 'surahText_v2_' + id;
+  const cached = store.get(cacheKey, null);
+  if (cached) return cached;
+  let lastErr;
+  for (let attempt = 0; attempt < 2; attempt++) {
+    const ctrl = new AbortController();
+    const timer = setTimeout(() => ctrl.abort(), 15000);
+    try {
+      const res = await fetch(`https://api.alquran.cloud/v1/surah/${id}/quran-uthmani`, { signal: ctrl.signal });
+      if (!res.ok) throw new Error('HTTP ' + res.status);
+      const data = await 
