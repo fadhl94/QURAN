@@ -118,7 +118,7 @@ button{font-family:inherit;cursor:pointer}
 .toast{position:fixed;bottom:calc(env(safe-area-inset-bottom) + 24px);left:50%;transform:translate(-50%,30px);background:var(--primary);color:#fff;padding:11px 20px;border-radius:99px;
   font-size:.92rem;font-weight:500;box-shadow:0 8px 24px rgba(0,0,0,.28);opacity:0;pointer-events:none;transition:all .3s;z-index:100;white-space:nowrap}
 .toast.show{opacity:1;transform:translate(-50%,0)}
-.install{position:fixed;bottom:calc(env(safe-area-inset-bottom) + 20px);right:16px;display:none;align-items:center;gap:8px;background:var(--gold);color:#2b2108;border:none;
+.install{position:fixed;bottom:calc(env(safe-area-inset-bottom) + 20px);right:16px;display:flex;align-items:center;gap:8px;background:var(--gold);color:#2b2108;border:none;
   border-radius:99px;padding:12px 18px;font-weight:800;font-size:.95rem;box-shadow:0 6px 18px rgba(0,0,0,.25);z-index:90}
 .to-top{position:fixed;bottom:calc(env(safe-area-inset-bottom) + 20px);left:16px;width:46px;height:46px;border-radius:50%;border:none;background:var(--primary-2);color:#fff;
   font-size:1.2rem;box-shadow:0 6px 18px rgba(0,0,0,.25);display:none;z-index:80}
@@ -253,12 +253,10 @@ function renderStats() {
   const n = memorized.size;
   const pct = Math.round(n / 114 * 100);
   let v = 0; memorized.forEach(id => v += VERSES[id - 1]);
-  $('ring').style.setProperty('--p', pct);
-  $('ringText').textContent = ar(pct) + '٪';
+  $('ring').style.setProperty('--p', pct);$('ringText').textContent = ar(pct) + '٪';
   $('countBig').innerHTML = `${ar(n)} <small>من ${ar(114)} سورة</small>`;
   $('versesSub').textContent = `${ar(v)} آية محفوظة من ${ar(TOTAL_VERSES)}`;
-  $('barFill').style.width = (v / TOTAL_VERSES * 100) + '%';
-  $('cAll').textContent = `(${ar(114)})`;
+  $('barFill').style.width = (v / TOTAL_VERSES * 100) + '\%';$('cAll').textContent = `(${ar(114)})`;
   $('cDone').textContent = `(${ar(n)})`;
   $('cTodo').textContent = `(${ar(114 - n)})`;
 }
@@ -301,10 +299,7 @@ $('list').addEventListener('click', e => {
   if (e.target.closest('[data-act="toggle"]')) { toggle(id); return; }
   openSurah(id);
 });
-$('list').addEventListener('keydown', e => {
-  if ((e.key === 'Enter' || e.key === ' ') && e.target.classList.contains('surah')) { e.preventDefault(); openSurah(+e.target.dataset.id); }
-});
-$('tabs').addEventListener('click', e => {
+$('list').addEventListener('keydown', e => { if ((e.key === 'Enter' \vert{}\vert{} e.key === ' ') && e.target.classList.contains('surah')) { e.preventDefault(); openSurah(+e.target.dataset.id); } });$('tabs').addEventListener('click', e => {
   const t = e.target.closest('.tab'); if (!t) return;
   filter = t.dataset.f;
   document.querySelectorAll('.tab').forEach(x => x.classList.toggle('active', x === t));
@@ -315,7 +310,6 @@ $('search').addEventListener('input', e => { clearTimeout(st); st = setTimeout((
 
 /* ================= القراءة ================= */
 function cleanAyahs(id, ayahs) {
-  // يعيد [{n, t}] بعد إزالة البسملة المدمجة في الآية الأولى (ما عدا الفاتحة حيث هي آية مستقلة)
   return ayahs.map((a, idx) => {
     let t = String(a.text || '');
     if (idx === 0 && id !== 1 && id !== 9) {
@@ -342,7 +336,7 @@ async function fetchSurah(id) {
       const data = await res.json();
       if (data.code !== 200) throw new Error('bad response');
       const out = cleanAyahs(id, data.data.ayahs);
-      store.set(cacheKey, out);   // حفظ للقراءة دون إنترنت
+      store.set(cacheKey, out);
       return out;
     } catch (err) { lastErr = err; }
     finally { clearTimeout(timer); }
@@ -366,8 +360,7 @@ async function showReader(id) {
   const token = ++loadToken;
   const name = SURAHS[id - 1];
   $('mainView').style.display = 'none';
-  $('readerView').style.display = 'block';
-  $('readerTitle').textContent = 'سورة ' + name;
+  $('readerView').style.display = 'block';$('readerTitle').textContent = 'سورة ' + name;
   $('bannerName').textContent = 'سورة ' + name;
   $('bannerMeta').textContent = `${ar(id)} · عدد آياتها ${ar(VERSES[id - 1])}`;
   $('prevBtn').disabled = id <= 1;
@@ -375,14 +368,13 @@ async function showReader(id) {
   updateMarkBtn();
   window.scrollTo(0, 0);
 
-  // البسملة: تُعرض مرة واحدة فقط في الأعلى، ولا تُعرض في التوبة، وفي الفاتحة تظهر كآية أولى
   $('bismillah').innerHTML = (id !== 1 && id !== 9) ? `<div class="bismillah">${BISMILLAH}</div>` : '';
 
   const v = $('verses');
   v.innerHTML = '<div class="loading"><div class="spinner"></div>جاري تحميل الآيات...</div>';
   try {
     const ayahs = await fetchSurah(id);
-    if (token !== loadToken) return;      // تم الانتقال لسورة أخرى أثناء التحميل
+    if (token !== loadToken) return;
     const frag = document.createDocumentFragment();
     ayahs.forEach(a => {
       frag.appendChild(document.createTextNode(a.t + ' '));
@@ -394,7 +386,7 @@ async function showReader(id) {
     v.replaceChildren(frag);
   } catch (err) {
     if (token !== loadToken) return;
-    v.innerHTML = '<div class="error">تعذّر تحميل الآيات.<br>تأكد من اتصالك بالإنترنت (يلزم في أول قراءة لكل سورة فقط).<br><button class="retry" id="retryBtn">إعادة المحاولة</button></div>';
+    v.innerHTML = '<div class="error">تعذّر تحميل الآيات.<br>تأكد من اتصالك بالإنترنت.<br><button class="retry" id="retryBtn">إعادة المحاولة</button></div>';
     $('retryBtn').onclick = () => showReader(id);
   }
 }
@@ -402,8 +394,7 @@ async function showReader(id) {
 function showMain() {
   loadToken++;
   currentId = null;
-  $('readerView').style.display = 'none';
-  $('mainView').style.display = 'block';
+  $('readerView').style.display = 'none';$('mainView').style.display = 'block';
   window.scrollTo(0, 0);
 }
 
@@ -415,12 +406,10 @@ function goTo(id) {
 
 $('backBtn').onclick = () => (history.state && history.state.view === 'reader') ? history.back() : (history.replaceState(null, '', location.pathname + location.search), showMain());
 $('prevBtn').onclick = () => goTo(currentId - 1);
-$('nextBtn').onclick = () => goTo(currentId + 1);
-$('markBtn').onclick = () => toggle(currentId);
+$('nextBtn').onclick = () => goTo(currentId + 1);$('markBtn').onclick = () => toggle(currentId);
 
 function applyFont() { document.documentElement.style.setProperty('--reader-size', fontSize + 'rem'); }
-$('fontPlus').onclick = () => { fontSize = Math.min(3, +(fontSize + .15).toFixed(2)); applyFont(); store.set('readerFontSize', fontSize); };
-$('fontMinus').onclick = () => { fontSize = Math.max(1.1, +(fontSize - .15).toFixed(2)); applyFont(); store.set('readerFontSize', fontSize); };
+$('fontPlus').onclick = () => { fontSize = Math.min(3, +(fontSize + .15).toFixed(2)); applyFont(); store.set('readerFontSize', fontSize); };$('fontMinus').onclick = () => { fontSize = Math.max(1.1, +(fontSize - .15).toFixed(2)); applyFont(); store.set('readerFontSize', fontSize); };
 applyFont();
 
 window.addEventListener('popstate', e => {
@@ -428,19 +417,57 @@ window.addEventListener('popstate', e => {
 });
 
 /* ================= زر الأعلى ================= */
-window.addEventListener('scroll', () => { $('toTop').style.display = window.scrollY > 500 ? 'block' : 'none'; }, { passive: true });
-$('toTop').onclick = () => window.scrollTo({ top: 0, behavior: 'smooth' });
+window.addEventListener('scroll', () => { $('toTop').style.display = window.scrollY > 500 ? 'block' : 'none'; }, { passive: true });$('toTop').onclick = () => window.scrollTo({ top: 0, behavior: 'smooth' });
 
-/* ================= التثبيت (PWA) ================= */
-let deferredPrompt;
-window.addEventListener('beforeinstallprompt', e => { e.preventDefault(); deferredPrompt = e; $('installBtn').style.display = 'flex'; });
-$('installBtn').onclick = async () => {
-  if (!deferredPrompt) return;
-  deferredPrompt.prompt();
-  await deferredPrompt.userChoice;
-  deferredPrompt = null; $('installBtn').style.display = 'none';
+/* ================= التثبيت (PWA) مع أيقونة القرآن الكريم والزر العائم ================= */
+const manifestData = {
+  name: "متابع حفظ القرآن الكريم",
+  short_name: "حفظ القرآن",
+  start_url: window.location.href,
+  display: "standalone",
+  background_color: "#0f3d2e",
+  theme_color: "#0f3d2e",
+  icons: [
+    {
+      src: "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'><rect width='512' height='512' rx='120' fill='%230f3d2e'/><text x='50%' y='53%' font-size='220' text-anchor='middle' dominant-baseline='middle'>📖</text></svg>",
+      sizes: "512x512",
+      type: "image/svg+xml"
+    }
+  ]
 };
-window.addEventListener('appinstalled', () => { $('installBtn').style.display = 'none'; });
+const blob = new Blob([JSON.stringify(manifestData)], {type: 'application/json'});
+const manifestURL = URL.createObjectURL(blob);
+const link = document.createElement('link');
+link.rel = 'manifest';
+link.href = manifestURL;
+document.head.appendChild(link);
+
+let deferredPrompt;
+window.addEventListener('beforeinstallprompt', e => {
+  e.preventDefault();
+  deferredPrompt = e;
+  $('installBtn').style.display = 'flex';
+});
+
+$('installBtn').onclick = async () => {
+  if (deferredPrompt) {
+    deferredPrompt.prompt();
+    const { outcome } = await deferredPrompt.userChoice;
+    if (outcome === 'accepted') {
+      $('installBtn').style.display = 'none';
+    }
+    deferredPrompt = null;
+  } else {
+    alert("لتثبيت التطبيق على هاتفك:\n\n1. اضغط على خيارات المتصفح (النقاط الثلاث ⋮ أعلى الشاشة).\n2. اختر 'الإضافة إلى الشاشة الرئيسية' (Add to Home screen) أو 'تثبيت التطبيق'.\n\nوسيظهر التطبيق بأيقونة المصحف (📖) على شاشتك الرئيسية!");
+  }
+};
+
+window.addEventListener('appinstalled', () => {
+  $('installBtn').style.display = 'none';
+});
+
+// إظهار الزر العائم دائماً لضمان سهولة التثبيت والوصول
+$('installBtn').style.display = 'flex';
 
 /* ================= بدء التشغيل ================= */
 renderStats();
