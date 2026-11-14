@@ -169,6 +169,30 @@ button{font-family:inherit;cursor:pointer}
 .rec.sel i{border-color:var(--accent);background:radial-gradient(var(--accent) 45%,transparent 50%)}
 .to-top{position:fixed;bottom:calc(env(safe-area-inset-bottom) + 20px);left:16px;width:46px;height:46px;border-radius:50%;border:none;background:var(--primary-2);color:#fff;
   font-size:1.2rem;box-shadow:0 6px 18px rgba(0,0,0,.25);display:none;z-index:80}
+/* ---------- وضع التلفاز (Android TV) ---------- */
+html.tv{font-size:22px}
+.tv .app{max-width:1280px;padding:0 40px 80px}
+.tv .hero,.tv .reader-bar{margin:0 -40px;padding-left:40px;padding-right:40px}
+.tv .hero{padding-top:calc(env(safe-area-inset-top) + 34px)}
+.tv .reader-bar{padding-top:20px;padding-bottom:16px}
+.tv .list{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.tv .icon-btn,.tv .reader-bar .icon-btn{width:56px;height:56px;font-size:1.3rem;border-radius:16px}
+.tv .check{width:56px;height:56px}
+.tv .num{width:56px;height:56px}
+.tv .play{width:76px;height:76px}
+.tv .rep{width:60px;height:60px}
+.tv .tab{padding:14px 8px}
+.tv .search input{padding:16px 48px 16px 16px;font-size:1.1rem}
+.tv .btn{padding:18px 12px;font-size:1.05rem}
+.tv .verses{line-height:2.4}
+.tv .toast{font-size:1.1rem;padding:16px 32px}
+.tv .sheet-bg{align-items:center}
+.tv .sheet{max-width:760px;border-radius:24px}
+.tv .install,.tv .to-top{display:none!important}
+.tv button:focus,.tv input:focus,.tv .surah:focus,.tv .verses:focus{outline:4px solid var(--gold);outline-offset:3px;border-radius:14px}
+.tv .surah:focus{transform:scale(1.02);border-color:var(--gold);box-shadow:var(--shadow)}
+.tv .btn:focus,.tv .tab:focus,.tv .rec:focus{background:var(--gold-soft);color:#1c2a24}
+.tv #seek:focus{outline-offset:8px}
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 </style>
 </head>
@@ -264,6 +288,7 @@ button{font-family:inherit;cursor:pointer}
 <div class="sheet-bg" id="setBg">
   <div class="sheet" role="dialog" aria-modal="true" aria-labelledby="setTitle">
     <div class="s-head"><div><h3 id="setTitle">⚙️ الإعدادات</h3><div class="s-sub">اختر القارئ الذي تريد الاستماع إليه</div></div></div>
+    <button class="rec" id="tvToggle" type="button">📺 وضع التلفاز</button>
     <div id="recList"></div>
     <button class="btn primary" id="setClose">تم</button>
   </div>
@@ -394,6 +419,9 @@ let query = '';
 let currentId = null;
 let loadToken = 0;
 let fontSize = store.get('readerFontSize', 1.7);
+const TV = { on: false };      // وضع التلفاز
+let lastSurahId = null;        // آخر سورة فُتحت (لاستعادة التركيز)
+let settingsOpener = null;     // العنصر الذي فتح نافذة الإعدادات
 
 /* ================= السمة ================= */
 function applyTheme(t) {
@@ -570,7 +598,7 @@ function setReciter(rid) {
   toast('القارئ: ' + rec().name);
 }
 function renderRecList() {
-  const box = $('recList'); box.innerHTML = '';
+  const box = $('recList'); const had = box.contains(document.activeElement); box.innerHTML = '';
   RECITERS.forEach(r => {
     const b = document.createElement('button');
     b.className = 'rec' + (r.id === reciterId ? ' sel' : '');
@@ -579,9 +607,17 @@ function renderRecList() {
     b.onclick = () => { if (r.id !== reciterId) setReciter(r.id); };
     box.appendChild(b);
   });
+  if (had && TV.on) { const f = box.querySelector('.sel') || box.firstChild; if (f) f.focus(); }
 }
-const openSettings = () => { renderRecList(); $('setBg').classList.add('open'); };
-const closeSettings = () => $('setBg').classList.remove('open');
+const openSettings = () => {
+  settingsOpener = document.activeElement;
+  renderRecList(); $('setBg').classList.add('open');
+  if (TV.on) setTimeout(() => { const f = $('recList').querySelector('.sel') || $('tvToggle'); if (f) f.focus(); }, 0);
+};
+const closeSettings = () => {
+  $('setBg').classList.remove('open');
+  if (TV.on && settingsOpener && settingsOpener.focus) settingsOpener.focus();
+};
 $('settingsBtn').onclick = openSettings;
 $('pReciter').onclick = openSettings;
 $('setClose').onclick = closeSettings;
@@ -706,6 +742,8 @@ async function showReader(id) {
   updateMarkBtn();
   audioPrepare(id);
   window.scrollTo(0, 0);
+  lastSurahId = id;
+  if (TV.on) setTimeout(() => $('playBtn').focus(), 0);
 
   // البسملة: تُعرض مرة واحدة فقط في الأعلى، ولا تُعرض في التوبة، وفي الفاتحة تظهر كآية أولى
   $('bismillah').innerHTML = (id !== 1 && id !== 9) ? `<div class="bismillah">${BISMILLAH}</div>` : '';
@@ -738,6 +776,11 @@ function showMain() {
   $('readerView').style.display = 'none';
   $('mainView').style.display = 'block';
   window.scrollTo(0, 0);
+  if (TV.on) setTimeout(() => {
+    const row = lastSurahId && $('list').querySelector('.surah[data-id="' + lastSurahId + '"]');
+    const f = row || $('list').querySelector('.surah');
+    if (f) { f.focus(); f.scrollIntoView({ block: 'center' }); }
+  }, 0);
 }
 
 function goTo(id) {
@@ -815,9 +858,130 @@ $('installBtn').onclick = async () => {
 // iOS لا يدعم beforeinstallprompt: نُظهر الزر يدويًا إذا لم يكن التطبيق مثبّتًا
 if (isIOS && !isStandalone()) $('installBtn').style.display = 'flex';
 
+/* ================= وضع التلفاز: التحكم بالريموت ================= */
+function detectTV() {
+  const q = new URLSearchParams(location.search);
+  if (q.get('tv') === '1') return true;
+  if (q.get('tv') === '0') return false;
+  const saved = store.get('tvMode', null);
+  if (saved !== null) return !!saved;
+  const ua = navigator.userAgent;
+  if (/SMART-TV|SmartTV|Tizen|Web0S|WebOS|CrKey|BRAVIA|AFT[A-Z]|Android.*\bTV\b|Television|HbbTV|NetCast|AquosBrowser|Roku/i.test(ua)) return true;
+  // أندرويد بدون شاشة لمس غالبًا تلفاز
+  if (/Android/i.test(ua) && !('ontouchstart' in window) && !(navigator.maxTouchPoints > 0)) return true;
+  return false;
+}
+
+function setTV(on, persist) {
+  TV.on = on;
+  document.documentElement.classList.toggle('tv', on);
+  if (persist) store.set('tvMode', on);
+  $('tvToggle').textContent = '📺 وضع التلفاز: ' + (on ? 'مفعّل' : 'متوقف');
+  $('tvToggle').classList.toggle('sel', on);
+  if (on) $('verses').setAttribute('tabindex', '0'); else $('verses').removeAttribute('tabindex');
+}
+$('tvToggle').onclick = () => { setTV(!TV.on, true); toast(TV.on ? 'تم تفعيل وضع التلفاز' : 'تم إيقاف وضع التلفاز'); };
+
+function focusables() {
+  const scope = document.querySelector('.sheet-bg.open') || document.body;
+  return [...scope.querySelectorAll('button:not(:disabled),input,[tabindex="0"]')].filter(el => {
+    if (el.getAttribute('tabindex') === '-1') return false;
+    const r = el.getBoundingClientRect();
+    return r.width > 0 && r.height > 0;
+  });
+}
+function focusEl(el) { el.focus(); el.scrollIntoView({ block: 'center' }); }
+
+function moveFocus(dir) {
+  const all = focusables();
+  const cur = document.activeElement;
+  if (!cur || !all.includes(cur)) { if (all[0]) focusEl(all[0]); return; }
+  const a = cur.getBoundingClientRect();
+  const ax = a.left + a.width / 2, ay = a.top + a.height / 2;
+  let best = null, bestScore = Infinity;
+  for (const el of all) {
+    if (el === cur) continue;
+    const r = el.getBoundingClientRect();
+    const dx = r.left + r.width / 2 - ax, dy = r.top + r.height / 2 - ay;
+    let main, cross;
+    if (dir === 'left')  { if (dx >= -4) continue; main = -dx; cross = Math.abs(dy); }
+    if (dir === 'right') { if (dx <= 4)  continue; main = dx;  cross = Math.abs(dy); }
+    if (dir === 'up')    { if (dy >= -4) continue; main = -dy; cross = Math.abs(dx); }
+    if (dir === 'down')  { if (dy <= 4)  continue; main = dy;  cross = Math.abs(dx); }
+    const score = main + cross * 2.5;
+    if (score < bestScore) { bestScore = score; best = el; }
+  }
+  if (best) focusEl(best);
+  else if (dir === 'up' || dir === 'down') window.scrollBy({ top: dir === 'down' ? 260 : -260 });
+}
+
+function tvBack() {
+  if ($('setBg').classList.contains('open')) { closeSettings(); return true; }
+  if ($('sheetBg').classList.contains('open')) { closeSheet(); return true; }
+  if (currentId) { $('backBtn').click(); return true; }
+  return false;
+}
+function seekBy(sec) {
+  if (!aud.duration || !isFinite(aud.duration)) return;
+  aud.currentTime = Math.max(0, Math.min(aud.duration, aud.currentTime + sec));
+}
+
+document.addEventListener('keydown', e => {
+  if (!TV.on) return;
+  const k = e.key, kc = e.keyCode, ae = document.activeElement;
+  const inText = ae && ae.tagName === 'INPUT' && ae.type !== 'range';
+
+  /* أزرار الوسائط في الريموت */
+  if (k === 'MediaPlayPause' || kc === 179) { if (currentId) { e.preventDefault(); $('playBtn').click(); } return; }
+  if (k === 'MediaPlay') { if (currentId && aud.paused) { e.preventDefault(); $('playBtn').click(); } return; }
+  if (k === 'MediaPause') { if (currentId && !aud.paused) { e.preventDefault(); aud.pause(); } return; }
+  if (k === 'MediaTrackNext' || kc === 176) { if (currentId && currentId < 114) { e.preventDefault(); goAudio(1); } return; }
+  if (k === 'MediaTrackPrevious' || kc === 177) { if (currentId && currentId > 1) { e.preventDefault(); goAudio(-1); } return; }
+  if (k === 'MediaFastForward') { e.preventDefault(); seekBy(10); return; }
+  if (k === 'MediaRewind') { e.preventDefault(); seekBy(-10); return; }
+
+  /* زر الرجوع */
+  if (k === 'Escape' || k === 'GoBack' || k === 'BrowserBack' || kc === 4 || (k === 'Backspace' && !inText)) {
+    if (inText && k === 'Escape') { ae.blur(); e.preventDefault(); return; }
+    if (tvBack()) e.preventDefault();
+    return;
+  }
+
+  /* الأسهم */
+  const dirs = { ArrowLeft: 'left', ArrowRight: 'right', ArrowUp: 'up', ArrowDown: 'down' };
+  const dir = dirs[k];
+  if (!dir) return;
+
+  if (inText && (dir === 'left' || dir === 'right')) return;   // تحريك المؤشر داخل مربع البحث
+
+  if (ae === $('seek') && (dir === 'left' || dir === 'right')) {
+    e.preventDefault();
+    seekBy(dir === 'left' ? 10 : -10);   // الاتجاه من اليمين لليسار
+    return;
+  }
+  if (ae === $('verses') && (dir === 'up' || dir === 'down')) {
+    e.preventDefault();
+    const atBottom = window.innerHeight + window.scrollY >= document.documentElement.scrollHeight - 8;
+    const atTop = $('verses').getBoundingClientRect().top >= 0;
+    if (dir === 'down' && !atBottom) { window.scrollBy({ top: 320 }); return; }
+    if (dir === 'up' && !atTop) { window.scrollBy({ top: -320 }); return; }
+  }
+  e.preventDefault();
+  moveFocus(dir);
+});
+
+/* الضغط على OK فوق شريط التقدم يشغّل/يوقف الصوت */
+$('seek').addEventListener('keydown', e => {
+  if (TV.on && e.key === 'Enter') { e.preventDefault(); $('playBtn').click(); }
+});
+
 /* ================= الإقلاع ================= */
+setTV(detectTV(), false);
 renderStats();
 renderList();
+if (TV.on) setTimeout(() => {
+  if (!currentId) { const f = $('list').querySelector('.surah'); if (f) f.focus(); }
+}, 350);
 (function initFromHash() {
   const m = location.hash.match(/^#surah-(\d{1,3})$/);
   if (m) {
