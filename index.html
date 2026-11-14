@@ -989,6 +989,19 @@ $('seek').addEventListener('keydown', e => {
   if (TV.on && e.key === 'Enter') { e.preventDefault(); $('playBtn').click(); }
 });
 
+/* ===== جسر التحكم من تطبيق الأندرويد (APK) ===== */
+window.__tvBack = () => tvBack();
+window.__media = a => {
+  if (!currentId) return;
+  if (a === 'playpause') $('playBtn').click();
+  else if (a === 'play') { if (aud.paused) $('playBtn').click(); }
+  else if (a === 'pause') aud.pause();
+  else if (a === 'next') { if (currentId < 114) goAudio(1); }
+  else if (a === 'prev') { if (currentId > 1) goAudio(-1); }
+  else if (a === 'ff') seekBy(10);
+  else if (a === 'rw') seekBy(-10);
+};
+
 /* ================= الإقلاع ================= */
 setTV(detectTV(), false);
 renderStats();
